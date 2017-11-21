@@ -8,7 +8,7 @@ boolean grid[8][8] = {
   {0, 0, 0, 0, 0, 0, 0, 0},
   {0, 0, 0, 0, 0, 0, 0, 0},
   {0, 0, 0, 0, 0, 0, 0, 0},
-  {0, 0, 0, 0, 0, 0, 0, 0},
+  {0, 0, 0, 0, 0, 0, 0, 0}
 };
 boolean bState = 0;
 boolean lbState = 0;
@@ -33,14 +33,21 @@ void loop() {
   int x_translate = map(LR, 1023, 0, 7, -1); //This maps the values//
   int y_translate = map(UD, 0, 1023, 0, 7);
   drawGrid();
+  checkButton();
   lc.setLed(0, x_translate, y_translate, true);
   delay(20); //Mess with this delay to get your joystick correct//
-  drawGrid();
   lc.setLed(0, x_translate, y_translate, false);
   delay(20); //Mess with this delay to get your joystick correct//
 }
 void drawGrid() {
+  for (int i = 0; i <= 7; i++) {
+    for (int j = 0; j <= 7; j++) {
+      lc.setLed(0, i, j, grid[i][j]);
+    }
+  }
+}
 
+void checkButton() {
   const int UD = analogRead(A16);
   const int LR = analogRead(A15);
   int x_translate = map(LR, 1023, 0, 7, -1); //This maps the values//
@@ -51,14 +58,8 @@ void drawGrid() {
 
   lbState = bState;
   bState = digitalRead(SW_pin);
-
-  for (int i = 0; i <= 7; i++) {
-    for (int j = 0; j <= 7; j++) {
-      if (lbState == HIGH && bState == LOW) {
-        grid[x_translate][y_translate] = 1;
-        lc.setLed(0, x_translate, y_translate, true);
-
-      }
-    }
+  if (lbState == LOW && bState == HIGH) {
+    grid[x_translate][y_translate] = !grid[x_translate][y_translate];
   }
 }
+
