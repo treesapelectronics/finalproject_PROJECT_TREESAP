@@ -17,7 +17,6 @@ unsigned long lastCheck = 0;
 int checkInt = 20;
 int tempo = 0;
 int currentStep = 0;
-boolean stepState[8] = { false, false, false, false, false, false, false, false };
 
 LedControl lc = LedControl(12, 11, 10, 1); //10 is to CLOCK, 9 = CS, 8=DIN//
 
@@ -75,9 +74,11 @@ void checkButton() {
 }
 
 void sequence() {
-  tempo = 150;
-  if (millis() > lastCheck + (55350 / (tempo*2))) {  //if its time to go to the next step...
+  const int tempo = analogRead(A9);
+  int tempoMap = map(tempo, 0, 1023, 100, 200);
+  if (millis() > lastCheck + (55350 / (tempoMap*2))) {  //if its time to go to the next step...
     currentStep = currentStep + 1;         //increment to the next step
+    Serial.println(tempoMap);
     if (currentStep > 7) {
       currentStep = 0;
     }
