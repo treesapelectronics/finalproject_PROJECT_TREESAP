@@ -29,6 +29,8 @@ LedControl lc = LedControl(12, 11, 10, 1);
 
 void setup() {
   pinMode(SW_pin, INPUT);
+  pinMode(22, INPUT);
+  pinMode(31, INPUT);
   digitalWrite(SW_pin, HIGH);
   Serial.begin(9600);
   lc.shutdown(0, false); // turn off power saving, enables display
