@@ -1,4 +1,5 @@
 #include "LedControl.h"
+#include <EEPROM.h>
 const int SW_pin = 36;
 boolean grid[8][8] = {
   {0, 0, 0, 0, 0, 0, 0, 0},
@@ -13,12 +14,18 @@ boolean grid[8][8] = {
 
 boolean bState = 0;
 boolean lbState = 0;
+
+boolean sState = 0;
+boolean lSState = 0;
+boolean lState = 0;
+boolean lLState = 0;
+
 unsigned long lastCheck = 0;
 int checkInt = 20;
 int tempo = 0;
 int currentStep = 0;
 
-LedControl lc = LedControl(12, 11, 10, 1); //10 is to CLOCK, 9 = CS, 8=DIN//
+LedControl lc = LedControl(12, 11, 10, 1);
 
 void setup() {
   pinMode(SW_pin, INPUT);
@@ -33,15 +40,17 @@ void loop() {
   const int SW_pin = 36;
   const int UD = analogRead(A16);
   const int LR = analogRead(A15);
-  int x_translate = map(LR, 1023, 0, 7, -1); //This maps the values//
+  int x_translate = map(LR, 1023, 0, 7, -1);
   int y_translate = map(UD, 0, 1023, 0, 7);
   sequence();
   drawGrid();
   checkButton();
   lc.setLed(0, x_translate, y_translate, true);
-  delay(20); //Mess with this delay to get your joystick correct//
+  delay(20);
   lc.setLed(0, x_translate, y_translate, false);
-  delay(20); //Mess with this delay to get your joystick correct//
+  delay(20);
+  save();
+  load();
 }
 
 void drawGrid() {
@@ -50,8 +59,8 @@ void drawGrid() {
       if (j == currentStep) {
         lc.setLed(0, i, j, true);
       }
-      else{
-      lc.setLed(0, i, j, grid[i][j]);
+      else {
+        lc.setLed(0, i, j, grid[i][j]);
       }
     }
   }
@@ -60,12 +69,8 @@ void drawGrid() {
 void checkButton() {
   const int UD = analogRead(A16);
   const int LR = analogRead(A15);
-  int x_translate = map(LR, 1023, 0, 7, -1); //This maps the values//
+  int x_translate = map(LR, 1023, 0, 7, -1);
   int y_translate = map(UD, 0, 1023, 0, 7);
-  //  if (millis() < lastCheck + checkInt) return;
-  //
-  //  lastCheck = millis();
-
   lbState = bState;
   bState = digitalRead(SW_pin);
   if (lbState == LOW && bState == HIGH) {
@@ -76,8 +81,8 @@ void checkButton() {
 void sequence() {
   const int tempo = analogRead(A9);
   int tempoMap = map(tempo, 0, 1023, 100, 200);
-  if (millis() > lastCheck + (55350 / (tempoMap*2))) {  //if its time to go to the next step...
-    currentStep = currentStep + 1;         //increment to the next step
+  if (millis() > lastCheck + (55350 / (tempoMap * 2))) {
+    currentStep = currentStep + 1;
     Serial.println(tempoMap);
     if (currentStep > 7) {
       currentStep = 0;
@@ -130,6 +135,30 @@ void sequence() {
     else {
       usbMIDI.sendNoteOff(67, 127, 1);
     }
-    lastCheck = millis();               //set lastStepTime to the current time
+    lastCheck = millis();
+  }
+}
+
+void save() {
+  lSState = sState;
+  sState = digitalRead(31);
+  for (int i = 0; i <= 7; i++) {
+    for (int j = 0; j <= 7; j++) {
+      if (lSState == LOW && sState == HIGH) {
+        EEPROM.write(j + (i * 8), grid[i][j]);
+      }
+    }
+  }
+}
+
+void load() {
+  lLState = lState;
+  lState = digitalRead(22);
+  for (int i = 0; i <= 7; i++) {
+    for (int j = 0; j <= 7; j++) {
+      if (lLState == LOW && lState == HIGH) {
+        grid[i][j] = EEPROM.read(j + (i * 8));
+      }
+    }
   }
 }
