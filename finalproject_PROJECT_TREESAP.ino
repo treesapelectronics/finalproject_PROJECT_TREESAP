@@ -4,20 +4,16 @@ boolean grid[8][8] = {
   {0, 0, 0, 0, 0, 0, 0, 0},
   {0, 0, 0, 0, 0, 0, 0, 0},
   {0, 0, 0, 0, 0, 0, 0, 0},
-  {0, 0, 0, 0, 1, 0, 0, 0},
+  {0, 0, 0, 0, 0, 0, 0, 0},
   {0, 0, 0, 0, 0, 0, 0, 0},
   {0, 0, 0, 0, 0, 0, 0, 0},
   {0, 0, 0, 0, 0, 0, 0, 0},
   {0, 0, 0, 0, 0, 0, 0, 0}
 };
-
 boolean bState = 0;
 boolean lbState = 0;
-unsigned long lastCheck = 0;
+int lastCheck = 0;
 int checkInt = 20;
-int tempo = 150;
-int currentStep = 0;
-boolean stepState[8] = { false, false, false, false, false, false, false, false };
 
 LedControl lc = LedControl(12, 11, 10, 1); //10 is to CLOCK, 9 = CS, 8=DIN//
 
@@ -36,7 +32,7 @@ void loop() {
   const int LR = analogRead(A15);
   int x_translate = map(LR, 1023, 0, 7, -1); //This maps the values//
   int y_translate = map(UD, 0, 1023, 0, 7);
-  timeline();
+  stepDot();
   drawGrid();
   checkButton();
   lc.setLed(0, x_translate, y_translate, true);
@@ -69,26 +65,14 @@ void checkButton() {
   }
 }
 
-void timeline() {
-  tempo = 150;
-
-  if (millis() > lastCheck + (60000 / tempo)) { //if its time to go to the next step...
-    currentStep = currentStep + 1;         //increment to the next step
-    if (currentStep > 7) {
-      currentStep = 0;
+void stepDot() {
+  for (int i = 0; i <= 7; i++) {
+    for (int j = 0; j <= 7; j++) {
+      lc.setLed(0, i, j, true);
+      delay(20);
+      lc.setLed(0, i, j, false);
+      delay(20); //Mess with this delay to get your joystick correct//
     }
-    //    digitalWrite(ledPin[currentStep], LOW);  //turn off the current led
-    //    for (int i = 0; i <= 7; i++) {
-    //      lc.setLed(0, i, 0, true);
-    //    }
-    if (stepState[currentStep] == HIGH) {
-      lc.setLed(0, currentStep, 0, true);
-      Serial.println(tempo);
-      Serial.println(" BPM");
-    }
-    else {
-      lc.setLed(0, currentStep, 0, false);
-    }
-    lastCheck = millis();
   }
 }
+
